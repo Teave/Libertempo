@@ -48,6 +48,7 @@ class Additionnelle extends \App\ProtoControllers\AHeure
         $valueDebut = '';
         $valueFin   = '';
         $notice = '';
+        $comment = '';
 
         if (!empty($_POST)) {
             if (0 >= (int) $this->post($_POST, $errorsLst, $notice)) {
@@ -64,6 +65,7 @@ class Additionnelle extends \App\ProtoControllers\AHeure
                 $valueJour  = $_POST['jour'];
                 $valueDebut = $_POST['debut_heure'];
                 $valueFin   = $_POST['fin_heure'];
+                $comment    = $_POST['comment'];
             } else {
                 log_action(0, 'demande', '', 'Nouvelle demande d\'heure additionnelle enregistrée');
                 redirect(ROOT_PATH . 'utilisateur/user_index.php?session='. session_id() . '&onglet=liste_heure_additionnelle', false);
@@ -108,6 +110,7 @@ class Additionnelle extends \App\ProtoControllers\AHeure
             $valueJour  = date('d/m/Y', $data['debut']);
             $valueDebut = date('H\:i', $data['debut']);
             $valueFin   = date('H\:i', $data['fin']);
+            $comment    = $data['comment'];
 
             $childTable .= '<input type="hidden" name="id_heure" value="' . $id . '" /><input type="hidden" name="_METHOD" value="PUT" />';
         }
@@ -115,9 +118,9 @@ class Additionnelle extends \App\ProtoControllers\AHeure
         $debutId = uniqid();
         $finId   = uniqid();
 
-        $childTable .= '<thead><tr><th width="20%">' . _('Jour') . '</th><th>' . _('creneau') . '</th></tr></thead><tbody>';
+        $childTable .= '<thead><tr><th width="20%">' . _('Jour') . '</th><th>' . _('creneau') . '</th><th>' . _('divers_comment_maj_1') . '</th></tr></thead><tbody>';
         $childTable .= '<tr><td><input class="form-control date" type="text" value="' . $valueJour . '" name="jour"></td>';
-        $childTable .= '<td><div class="form-inline col-xs-3"><input class="form-control" style="width:45%" type="text" id="' . $debutId . '"  value="' . $valueDebut . '" name="debut_heure">&nbsp;<i class="fa fa-caret-right"></i>&nbsp;<input class="form-control" style="width:45%" type="text" id="' . $finId . '"  value="' . $valueFin . '" name="fin_heure"></div></td></tr>';
+        $childTable .= '<td><div class="form-inline col-xs-3"><input class="form-control" style="width:45%" type="text" id="' . $debutId . '"  value="' . $valueDebut . '" name="debut_heure">&nbsp;<i class="fa fa-caret-right"></i>&nbsp;<input class="form-control" style="width:45%" type="text" id="' . $finId . '"  value="' . $valueFin . '" name="fin_heure"></div></td><td><input class="form-control" type="text" name="comment" value="'.$comment.'" size="20" max="100"></td></tr>';
         $childTable .= '</tbody>';
         $childTable .= '<script type="text/javascript">generateTimePicker("' . $debutId . '");generateTimePicker("' . $finId . '");</script>';
 
@@ -353,8 +356,8 @@ enctype="application/x-www-form-urlencoded">' . $modification . '&nbsp;&nbsp;' .
         */
         $duree = $this->countDuree($timestampDebut, $timestampFin);
         $sql = \includes\SQL::singleton();
-        $req = 'INSERT INTO heure_additionnelle (id_heure, login, debut, fin, duree, statut) VALUES
-        (NULL, "' . $user . '", ' . (int) $timestampDebut . ', '. (int) $timestampFin .', '. (int) $duree . ', ' . AHeure::STATUT_DEMANDE . ')';
+        $req = 'INSERT INTO heure_additionnelle (id_heure, login, debut, fin, duree, statut,comment) VALUES
+        (NULL, "' . $user . '", ' . (int) $timestampDebut . ', '. (int) $timestampFin .', '. (int) $duree . ', ' . AHeure::STATUT_DEMANDE . ', \''.$post['comment'].'\')';
         $query = $sql->query($req);
 
         return $sql->insert_id;
@@ -374,7 +377,8 @@ enctype="application/x-www-form-urlencoded">' . $modification . '&nbsp;&nbsp;' .
         $req   = 'UPDATE heure_additionnelle
                 SET debut = ' . $timestampDebut . ',
                     fin = ' . $timestampFin . ',
-                    duree = ' . $duree . '
+                    duree = ' . $duree . ',
+                    comment = \'' . $put['comment'] . '\'
                 WHERE id_heure = '. (int) $id . '
                 AND login = "' . $user . '"';
         $query = $sql->query($req);
