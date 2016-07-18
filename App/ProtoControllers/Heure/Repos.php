@@ -65,6 +65,7 @@ class Repos extends \App\ProtoControllers\AHeure
                 $valueJour  = $_POST['jour'];
                 $valueDebut = $_POST['debut_heure'];
                 $valueFin   = $_POST['fin_heure'];
+                $comment    = \includes\SQL::quote($_POST['comment']);
             } else {
                 log_action(0, 'demande', '', 'Nouvelle demande d\'heure de repos enregistrée');
                 redirect(ROOT_PATH . 'utilisateur/user_index.php?session='. session_id() . '&onglet=liste_heure_repos', false);
@@ -109,7 +110,7 @@ class Repos extends \App\ProtoControllers\AHeure
             $valueJour  = date('d/m/Y', $data['debut']);
             $valueDebut = date('H\:i', $data['debut']);
             $valueFin   = date('H\:i', $data['fin']);
-            $comment    = $data['comment'];
+            $comment    = \includes\SQL::quote($data['comment']);
 
             $childTable .= '<input type="hidden" name="id_heure" value="' . $id . '" /><input type="hidden" name="_METHOD" value="PUT" />';
         }
@@ -208,7 +209,7 @@ class Repos extends \App\ProtoControllers\AHeure
             'table-condensed',
             'table-striped',
         ]);
-        $childTable = '<thead><tr><th>' . _('jour') . '</th><th>' . _('divers_debut_maj_1') . '</th><th>fin</th><th>' . _('duree') . '</th><th>' . _('statut') . '</th><th>' . _('commentaire') . '</th><th></th></tr></thead><tbody>';
+        $childTable = '<thead><tr><th>' . _('jour') . '</th><th>' . _('divers_debut_maj_1') . '</th><th>' . _('divers_fin_maj_1') . '</th><th>' . _('duree') . '</th><th>' . _('statut') . '</th><th>' . _('commentaire') . '</th><th></th></tr></thead><tbody>';
         $session = session_id();
         $listId = $this->getListeId($params);
         if (empty($listId)) {
@@ -221,6 +222,7 @@ class Repos extends \App\ProtoControllers\AHeure
                 $fin    = date('H\:i', $repos['fin']);
                 $duree  = date('H\:i', $repos['duree']);
                 $statut = AHeure::statusText($repos['statut']);
+                $comment = \includes\SQL::quote($repos['comment']);
                 if (AHeure::STATUT_DEMANDE == $repos['statut']) {
                     $modification = '<a title="' . _('form_modif') . '" href="user_index.php?onglet=modif_heure_repos&id=' . $repos['id_heure'] . '&session=' . $session . '"><i class="fa fa-pencil"></i></a>';
                     $annulation   = '<input type="hidden" name="id_heure" value="' . $repos['id_heure'] . '" /><input type="hidden" name="_METHOD" value="DELETE" /><button type="submit" class="btn btn-link" title="' . _('Annuler') . '"><i class="fa fa-times-circle"></i></button>';
@@ -228,7 +230,7 @@ class Repos extends \App\ProtoControllers\AHeure
                     $modification = '<i class="fa fa-pencil disabled" title="'  . _('heure_non_modifiable') . '"></i>';
                     $annulation   = '<button title="' . _('heure_non_supprimable') . '" type="button" class="btn btn-link disabled"><i class="fa fa-times-circle"></i></button>';
                 }
-                $childTable .= '<tr><td>' . $jour . '</td><td>' . $debut . '</td><td>' . $fin . '</td><td>' . $duree . '</td><td>' . $statut . '</td><td>' . $repos['comment'] . '</td><td><form action="" method="post" accept-charset="UTF-8"
+                $childTable .= '<tr><td>' . $jour . '</td><td>' . $debut . '</td><td>' . $fin . '</td><td>' . $duree . '</td><td>' . $statut . '</td><td>' . $comment . '</td><td><form action="" method="post" accept-charset="UTF-8"
 enctype="application/x-www-form-urlencoded">' . $modification . '&nbsp;&nbsp;' . $annulation . '</form></td></tr>';
             }
         }
@@ -363,7 +365,7 @@ enctype="application/x-www-form-urlencoded">' . $modification . '&nbsp;&nbsp;' .
         $duree = $this->countDuree($timestampDebut, $timestampFin);
         $sql = \includes\SQL::singleton();
         $req = 'INSERT INTO heure_repos (id_heure, login, debut, fin, duree, statut, comment) VALUES
-        (NULL, "' . $user . '", ' . (int) $timestampDebut . ', '. (int) $timestampFin .', '. (int) $duree . ', ' . AHeure::STATUT_DEMANDE . ',\'' . $post['comment'] . '\')';
+        (NULL, "' . $user . '", ' . (int) $timestampDebut . ', '. (int) $timestampFin .', '. (int) $duree . ', ' . AHeure::STATUT_DEMANDE . ',\'' . \includes\SQL::quote($post['comment']) . '\')';
         $query = $sql->query($req);
 
         return $sql->insert_id;
@@ -378,13 +380,14 @@ enctype="application/x-www-form-urlencoded">' . $modification . '&nbsp;&nbsp;' .
         $timestampDebut = strtotime($jour . ' ' . $put['debut_heure']);
         $timestampFin   = strtotime($jour . ' ' . $put['fin_heure']);
         $duree = $this->countDuree($timestampDebut, $timestampFin);
+        $comment = \includes\SQL::quote($put['comment']);
         $sql   = \includes\SQL::singleton();
         $toInsert = [];
         $req   = 'UPDATE heure_repos
                 SET debut = ' . $timestampDebut . ',
                     fin = ' . $timestampFin . ',
                     duree = ' . $duree . ',
-                    comment = \''.$put['comment'].'\'
+                    comment = \''.$comment.'\'
                 WHERE id_heure = '. (int) $id . '
                 AND login = "' . $user . '"';
         $query = $sql->query($req);
