@@ -20,10 +20,17 @@ class Conge
      * Le valide est pour la première validation, le « ok » pour la seconde
      * @var int
      */
-    const STATUT_VALIDE  = 'valid';
-    const STATUT_OK      = 'ok';
-    const STATUT_REFUS   = 'refus';
-    const STATUT_ANNUL   = 'annul';
+    const STATUT_VALIDE = 'valid';
+    const STATUT_OK     = 'ok';
+    const STATUT_REFUS  = 'refus';
+    const STATUT_ANNUL  = 'annul';
+    
+    /**
+     * Constantes du formulaire de traitement des demandes
+     * à terme, vu que c'est une logique métier qui dépend de plusieurs modèles, à mettre dans un service ou une spécification
+     */
+    const ACCEPTE       = '1';
+    const REFUSE        = '2';
 
     /**
      * Retourne les options de select des statuts
